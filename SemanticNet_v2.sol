@@ -1,12 +1,14 @@
 
 pragma solidity ^0.4.24;
 import "github.com/Arachnid/solidity-stringutils/strings.sol";
-
+import "./ConcatUtils.sol";
 
 
 contract BlockchainSemanticTerminologyNet {
     
       using strings for *;
+      
+
       
       event LogDebug(string gotTo);
       event AddingNode(address fromAddr, uint number,string fullName,bytes32 uniqueNumber);
@@ -30,11 +32,11 @@ contract BlockchainSemanticTerminologyNet {
          nodeNumber++;
         
          addNode(0,"Block",owner); //1
-         addNode(1,"Transaction",owner); //2
-         addNode(0,"Node",owner); //3
-         addNode(3,"Peer",owner);//4
-         addNode(0,"Miner",owner);//5
-         addNode(0,"Wallet",owner);//6
+        //  addNode(1,"Transaction",owner); //2
+        //  addNode(0,"Node",owner); //3
+        //  addNode(3,"Peer",owner);//4
+        //  addNode(0,"Miner",owner);//5
+        //  addNode(0,"Wallet",owner);//6
     }
     
     //name,creator,resourcesJoined, childrenJoined
@@ -42,9 +44,10 @@ contract BlockchainSemanticTerminologyNet {
         require(index<nodeNumber, "Please provide existing index");
         
         bytes32[] storage pathToNode = flattenTree[nodeIndex];
-        Node  ourNode = mainNode;
+        Node storage  ourNode = mainNode;
         uint  index = 1;
 
+        //constant speed of searching
         while(ourNode.number!= nodeIndex && index < pathToNode.length){
             
             bytes32 nextItem = pathToNode[index];
@@ -63,12 +66,26 @@ contract BlockchainSemanticTerminologyNet {
         }
         
             strings.slice memory childrenItems = "".toSlice();
-           for (uint j=0; j< ourNode.cheldrenKeys.length; j++) {
+          for (uint j=0; j< ourNode.childrenKeys.length; j++) {
           
-           childrenItems = childrenItems
-           .concat(ourNode.children[ourNode.cheldrenKeys[j]].name.toSlice()).toSlice()
-           .concat(",".toSlice()).toSlice();
-        }
+          childrenItems = childrenItems
+          .concat(ourNode.children[ourNode.childrenKeys[j]].name.toSlice()).toSlice()
+          .concat(",".toSlice()).toSlice();
+         }
+        
+        //       string memory childrenItems = "{";
+        //   for (uint j=0; j< ourNode.childrenKeys.length; j++) {
+          
+        //   uint number = ourNode.children[ourNode.childrenKeys[j]].number;
+        //   string  numberStr = uintToString(number);
+        //   string name = ourNode.children[ourNode.childrenKeys[j]].name;
+        //   string pair = concatTwoStrings(numberStr,name,":");
+          
+        //   childrenItems = concatTwoStrings(childrenItems,pair, ""); 
+        //   childrenItems
+        //   .concat(ourNode.children[ourNode.childrenKeys[j]].name.toSlice()).toSlice()
+        //   .concat(",".toSlice()).toSlice();
+        //  }
         
         return (ourNode.name, ourNode.creator,resources.toString(),childrenItems.toString());
         
@@ -86,15 +103,58 @@ contract BlockchainSemanticTerminologyNet {
         
     }
     
+    // function findParentNode(uint number,Node node) internal pure returns (Node){
+    //     if(node.number == number){
+    //         return node;
+    //     }else{
+    //          for (uint i=0; i<node.childrenKeys.length; i++) {
+                 
+    //           findParentNode(number,node.children[node.childrenKeys[i]]);  
+              
+              
+    //         }
+    //     }
+    // }
     
-    function addNode(uint parentNumber, string _name, address _creator) public returns (uint){
+     modifier notDuplicate(uint parentNumber, string _name)
+    {
+        bytes32[] storage pathToNode = flattenTree[parentNumber];
+        Node storage  parentNode = mainNode;
+        uint  index = 1;
+
+        while(parentNode.number!=parentNumber && index < pathToNode.length){
+            
+            bytes32 nextItem = pathToNode[index];
+            parentNode = parentNode.children[nextItem];
+            index++;
+        }
         
+        bool hasSameChild = false;
+        //"foobie".toSlice().compare("foobie".toSlice()
+        for (uint j=0; j<parentNode.childrenKeys.length; j++) {
+            Node child = parentNode.children[parentNode.childrenKeys[j]];
+            int compareResult = child.name.toSlice().compare("foobie".toSlice());
+            if(compareResult==0){
+                hasSameChild = true;
+                break;
+            }
+        }
         
+        require(!hasSameChild,"You cannot add duplicate child on certain node");
+        
+       
+        // Do not forget the "_;"! It will
+        // be replaced by the actual function
+        // body when the modifier is used.
+        _;
+    }
+    
+    
+    function addNode(uint parentNumber, string _name, address _creator) public  returns (uint){ //notDuplicate(parentNumber, _name)
         
 
-        
         bytes32[] storage pathToNode = flattenTree[parentNumber];
-        Node  parentNode = mainNode;
+        Node storage  parentNode = mainNode;
         uint  index = 1;
         // emit LogDebug("Got to 51");
         //prepare string to be concatenated
@@ -104,15 +164,12 @@ contract BlockchainSemanticTerminologyNet {
             
             bytes32 nextItem = pathToNode[index];
             parentNode = parentNode.children[nextItem];
-            
-            //BUG: Blockchain->->Web Wallet???
+        
             uniqueIdentifierPath = uniqueIdentifierPath
                                   .concat(parentNode.name.toSlice()).toSlice()
                                   .concat("->".toSlice()).toSlice();
             index++;
         }
-        
-        // emit LogDebug("Got to 65");
         
         uniqueIdentifierPath = uniqueIdentifierPath.concat(_name.toSlice()).toSlice();
         string memory fullName = uniqueIdentifierPath.toString();
@@ -136,7 +193,7 @@ contract BlockchainSemanticTerminologyNet {
         nodeNumber++;   
         
         parentNode.children[newNode.uniqueIdentifier] = newNode;
-        parentNode.cheldrenKeys.push(newNode.uniqueIdentifier);
+        parentNode.childrenKeys.push(newNode.uniqueIdentifier);
         
         emit AddingNode(_creator,newNode.number,fullName,newNode.uniqueIdentifier);
         
@@ -147,6 +204,14 @@ contract BlockchainSemanticTerminologyNet {
       enum ReseurceType {
         url,doc,docx,ppt,pptx, sol
     }
+    
+    // function checkChildrenForDuplicats(Node node, string name) internal pure returns (bool isDuplicate){
+        
+    //       for (uint j=0; j<node.childrenKeys.length; j++) {
+    //         Node  child = node.children[node.childrenKeys[j]];
+    //         int compareResult = child.name.toSlice().compare("foobie".toSlice());
+    //     }
+    // } 
     
     
     //Represents entity in the Blockchain Semantic Net
@@ -168,7 +233,7 @@ contract BlockchainSemanticTerminologyNet {
         mapping(bytes32 => Node)  children;
         
         //helper arrrays 
-        bytes32[] cheldrenKeys;
+        bytes32[] childrenKeys;
         
       
         //ipfs hash of term resource
@@ -186,8 +251,8 @@ contract BlockchainSemanticTerminologyNet {
         uint number;
         
     }
-
-
+    
+    
 
 }
 

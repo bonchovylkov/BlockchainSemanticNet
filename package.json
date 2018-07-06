@@ -1,0 +1,25 @@
+{
+  "name": "blockchain_semantic_web",
+  "version": "1.0.0",
+  "description": "Smart contract for storing and getting blockchain related terms",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bonchovylkov/BlockchainSemanticNet.git"
+  },
+  "keywords": [
+    "Blockchain"
+  ],
+  "author": "Boncho Valkov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bonchovylkov/BlockchainSemanticNet/issues"
+  },
+  "homepage": "https://github.com/bonchovylkov/BlockchainSemanticNet#readme",
+  "devDependencies": {
+    "truffle": "^4.1.13"
+  }
+}

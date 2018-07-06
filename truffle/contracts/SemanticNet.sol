@@ -1,10 +1,11 @@
 
 pragma solidity ^0.4.24;
-import "github.com/Arachnid/solidity-stringutils/strings.sol";
-import "./ConcatUtils.sol";
+//import "github.com/Arachnid/solidity-stringutils/strings.sol";
+import "./strings.sol";
+//import "./ConcatUtils.sol";
 
 
-contract BlockchainSemanticTerminologyNet {
+contract SemanticNet {
     
       using strings for *;
       
@@ -13,7 +14,7 @@ contract BlockchainSemanticTerminologyNet {
       event LogDebug(string gotTo);
       event AddingNode(address fromAddr, uint number,string fullName,bytes32 uniqueNumber);
         
-    address private owner;
+    address public owner;
     Node public mainNode;
     uint public nodeNumber = 0;
     //additional map to simplify the search in the tree

@@ -4,7 +4,9 @@
   "description": "Smart contract for storing and getting blockchain related terms",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "truffle test",
+    "test:run:server": "testrpc-sc --port 8555 -l 0xfffffffffff -g 0x01",
+    "test:coverage": "solidity-coverage"
   },
   "repository": {
     "type": "git",
@@ -21,6 +23,8 @@
   "homepage": "https://github.com/bonchovylkov/BlockchainSemanticNet#readme",
   "devDependencies": {
     "jshint": "^2.9.5",
+    "solidity-coverage": "^0.5.5",
     "truffle": "^4.1.13"
-  }
+  },
+  "dependencies": {}
 }

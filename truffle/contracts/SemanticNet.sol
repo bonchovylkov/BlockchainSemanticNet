@@ -11,17 +11,17 @@ contract SemanticNet {
       
 
       
-      event LogDebug(string gotTo);
-      event AddingNode(address fromAddr, uint number,string fullName,bytes32 uniqueNumber);
+    event LogDebug(string gotTo);
+    event AddingNode(address fromAddr, uint number,string fullName,bytes32 uniqueNumber);
         
     address public owner;
     Node public mainNode;
     uint public nodeNumber = 0;
     //additional map to simplify the search in the tree
     //contains node number -> uniqueIdentifier of all nested items
-    mapping(uint=>bytes32[]) flattenTree;
+    mapping(uint=>bytes32[]) public flattenTree;
     
-    constructor() public{
+    constructor() public {
         owner = msg.sender;
         mainNode.name = "Blockchain";
        // mainNode.name = sha3(mainNode.name);
@@ -32,9 +32,9 @@ contract SemanticNet {
          
          nodeNumber++;
         
-         addNode(0,"Block",owner); //1
-        //  addNode(1,"Transaction",owner); //2
-        //  addNode(0,"Node",owner); //3
+         addNode(0,"Block"); //1
+         addNode(1,"Transaction"); //2
+         addNode(0,"Node"); //3
         //  addNode(3,"Peer",owner);//4
         //  addNode(0,"Miner",owner);//5
         //  addNode(0,"Wallet",owner);//6
@@ -133,7 +133,7 @@ contract SemanticNet {
         bool hasSameChild = false;
         //"foobie".toSlice().compare("foobie".toSlice()
         for (uint j=0; j<parentNode.childrenKeys.length; j++) {
-            Node child = parentNode.children[parentNode.childrenKeys[j]];
+            Node storage child = parentNode.children[parentNode.childrenKeys[j]];
             int compareResult = child.name.toSlice().compare("foobie".toSlice());
             if(compareResult==0){
                 hasSameChild = true;
@@ -151,7 +151,7 @@ contract SemanticNet {
     }
     
     
-    function addNode(uint parentNumber, string _name, address _creator) public  returns (uint){ //notDuplicate(parentNumber, _name)
+    function addNode(uint parentNumber, string _name) public  returns (uint){ //notDuplicate(parentNumber, _name)
         
 
         bytes32[] storage pathToNode = flattenTree[parentNumber];
@@ -177,7 +177,7 @@ contract SemanticNet {
      
         Node memory newNode;
         newNode.name = _name;
-        newNode.creator = _creator;
+        newNode.creator = msg.sender;
         newNode.number = nodeNumber;
         newNode.uniqueIdentifier = keccak256(abi.encodePacked(fullName));
         // emit LogDebug("Got to 75");
@@ -196,7 +196,7 @@ contract SemanticNet {
         parentNode.children[newNode.uniqueIdentifier] = newNode;
         parentNode.childrenKeys.push(newNode.uniqueIdentifier);
         
-        emit AddingNode(_creator,newNode.number,fullName,newNode.uniqueIdentifier);
+        emit AddingNode(msg.sender,newNode.number,fullName,newNode.uniqueIdentifier);
         
         return newNode.number;
     }

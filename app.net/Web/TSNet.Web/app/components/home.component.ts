@@ -204,7 +204,8 @@ export class HomeComponent {
                 .attr("y", 30)
                 .style("fill", "black")
                 .on("click", openLink)
-                .text("More info");
+                .html("&#9432;More info ");
+               // .text();
 
 
 

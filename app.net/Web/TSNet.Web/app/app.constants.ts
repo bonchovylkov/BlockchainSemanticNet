@@ -10,7 +10,7 @@
 export class Constants {
 
     //public static semantiNetContractAddress = "0x124f14c8b1637ce9ad21f1176cda7ea7c09e251b";
-    public static semantiNetContractAddress = "0x8009810201163a2bed3a4f05ff10110ffb5966cf";
+    public static semantiNetContractAddress = "0x0beab1aea1ac3c06270f6f38e59f19a04b8381a6";// "0x8009810201163a2bed3a4f05ff10110ffb5966cf";
     
     public static semanticNetABI = [
         {

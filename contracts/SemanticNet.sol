@@ -133,7 +133,7 @@ contract SemanticNet {
         delete parentNode.childrenKeys[parentNode.childrenKeys.length - 1];
         parentNode.childrenKeys.length--;
         
-        
+        nodeNumber--;
      }
 
     
@@ -196,7 +196,7 @@ contract SemanticNet {
     
     
       enum ReseurceType {
-        url,doc,docx,ppt,pptx, sol
+        url,doc,docx,ppt,pptx, sol,img
     }
     
    function uintToString(uint v) internal pure returns (string str) {

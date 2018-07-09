@@ -40,10 +40,12 @@ contract('SemanticNet', function ([owner]) {
 
     it('add node updates count', async  ()=> {
         
-        var currentCount = (await semanticWeb.mainNode())[1];
+        var currentCount = (await semanticWeb.nodeNumber()).toNumber();
+        //console.log(currentCount);
+        
         await semanticWeb.addNode.call(3,"test");
         //await semanticWeb.addNode({parentNumber:3,_name:"test"});
-        assert.equal(currentCount++, (await semanticWeb.mainNode())[1]);
+        assert.equal(currentCount++, (await semanticWeb.nodeNumber()).toNumber());
     });
 
 
@@ -54,8 +56,21 @@ contract('SemanticNet', function ([owner]) {
        assert.equal("Block", data[0]);
        assert.equal(owner, data[1]);
       // assert.equal("Block", data[0]);
-      // assert.equal("Transaction,", data[3]);
-        //await semanticWeb.addNode({parentNumber:3,_name:"test"});
-        //assert.equal(currentCount++, (await semanticWeb.mainNode())[1]);
+      var children =  data[3].split(',');
+      children = children.filter(function(n){ return n != "" }); 
+      
+       assert.equal(true, children.length > 0);
+
+    });
+
+
+    it('remove node by creator works', async  ()=> {
+        
+        var currentCount = (await semanticWeb.nodeNumber()).toNumber();
+
+        await semanticWeb.removeNode.call(0,3);
+        var newCount = (await semanticWeb.nodeNumber()).toNumber();
+        assert.equal(currentCount--, newCount);
+
     });
 })

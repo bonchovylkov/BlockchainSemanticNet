@@ -12,29 +12,30 @@ contract SemanticNet {
 
       
     event LogDebug(string gotTo);
-    event AddingNode(address fromAddr, uint number,string fullName,bytes32 uniqueNumber);
+    event AddingNode(address fromAddr, uint number,string fullName);
         
     address public owner;
     Node public mainNode;
     uint public nodeNumber = 0;
     //additional map to simplify the search in the tree
     //contains node number -> uniqueIdentifier of all nested items
-    mapping(uint=>bytes32[]) public flattenTree;
+    mapping(uint=>uint[]) public flattenTree;
     
     constructor() public {
         owner = msg.sender;
         mainNode.name = "Blockchain";
        // mainNode.name = sha3(mainNode.name);
-         mainNode.uniqueIdentifier = keccak256(abi.encodePacked(mainNode.name));
+         //mainNode.uniqueIdentifier = keccak256(abi.encodePacked(mainNode.name));
          mainNode.creator = msg.sender;
          mainNode.number = nodeNumber;
-         flattenTree[0].push(mainNode.uniqueIdentifier);
+         flattenTree[0].push(nodeNumber);
          
          nodeNumber++;
         
          addNode(0,"Block"); //1
          addNode(1,"Transaction"); //2
          addNode(0,"Node"); //3
+         
         //  addNode(3,"Peer",owner);//4
         //  addNode(0,"Miner",owner);//5
         //  addNode(0,"Wallet",owner);//6
@@ -42,16 +43,16 @@ contract SemanticNet {
     
     //name,creator,resourcesJoined, childrenJoined
     function getNodeJson(uint nodeIndex) view public returns (string,address,string,string){
-        require(index<nodeNumber, "Please provide existing index");
+        require(nodeIndex<nodeNumber, "Please provide existing index");
         
-        bytes32[] storage pathToNode = flattenTree[nodeIndex];
+        uint[] storage pathToNode = flattenTree[nodeIndex];
         Node storage  ourNode = mainNode;
         uint  index = 1;
 
         //constant speed of searching
         while(ourNode.number!= nodeIndex && index < pathToNode.length){
             
-            bytes32 nextItem = pathToNode[index];
+            uint nextItem = pathToNode[index];
             ourNode = ourNode.children[nextItem];
             
             index++;
@@ -70,7 +71,8 @@ contract SemanticNet {
           for (uint j=0; j< ourNode.childrenKeys.length; j++) {
           
           childrenItems = childrenItems
-          .concat(ourNode.children[ourNode.childrenKeys[j]].name.toSlice()).toSlice()
+          .concat(uintToString(ourNode.children[ourNode.childrenKeys[j]].number).toSlice()).toSlice()
+          //.concat(ourNode.children[ourNode.childrenKeys[j]].name.toSlice()).toSlice()
           .concat(",".toSlice()).toSlice();
          }
         
@@ -104,83 +106,73 @@ contract SemanticNet {
         
     }
     
-    // function findParentNode(uint number,Node node) internal pure returns (Node){
-    //     if(node.number == number){
-    //         return node;
-    //     }else{
-    //          for (uint i=0; i<node.childrenKeys.length; i++) {
-                 
-    //           findParentNode(number,node.children[node.childrenKeys[i]]);  
-              
-              
-    //         }
-    //     }
-    // }
+ 
     
-     modifier notDuplicate(uint parentNumber, string _name)
-    {
-        bytes32[] storage pathToNode = flattenTree[parentNumber];
+     function removeNode(uint parentNumber, uint nodeIndex)  public  {
+         require(index<nodeNumber, "Please provide existing index");
+        
+        uint[] storage pathToNode = flattenTree[parentNumber];
         Node storage  parentNode = mainNode;
         uint  index = 1;
 
+
         while(parentNode.number!=parentNumber && index < pathToNode.length){
             
-            bytes32 nextItem = pathToNode[index];
+            uint nextItem = pathToNode[index];
             parentNode = parentNode.children[nextItem];
+
             index++;
         }
         
-        bool hasSameChild = false;
+        Node storage ourNode = parentNode.children[nodeIndex];
+        require(ourNode.childrenKeys.length==0, "You cannot delete confired node");
+        require(ourNode.creator == msg.sender || ourNode.creator == owner, "Only the creator of node can delete it");
+        
+        delete parentNode.children[nodeIndex];
+        
+        delete parentNode.childrenKeys[parentNode.childrenKeys.length - 1];
+        parentNode.childrenKeys.length--;
+        
+        
+     }
+
+    
+    function addNode(uint parentNumber, string _name) public  returns (uint){ 
+        
+
+        uint[] storage pathToNode = flattenTree[parentNumber];
+        Node storage  parentNode = mainNode;
+        uint  index = 1;
+
+
+        while(parentNode.number!=parentNumber && index < pathToNode.length){
+            
+            uint nextItem = pathToNode[index];
+            parentNode = parentNode.children[nextItem];
+
+            index++;
+        }
+
+       
+       bool hasSameChild = false;
         //"foobie".toSlice().compare("foobie".toSlice()
         for (uint j=0; j<parentNode.childrenKeys.length; j++) {
             Node storage child = parentNode.children[parentNode.childrenKeys[j]];
-            int compareResult = child.name.toSlice().compare("foobie".toSlice());
+            int compareResult = child.name.toSlice().compare(_name.toSlice());
             if(compareResult==0){
                 hasSameChild = true;
                 break;
             }
         }
-        
         require(!hasSameChild,"You cannot add duplicate child on certain node");
+        require(msg.sender!=parentNode.creator || msg.sender == owner,"You cannot add validate your node by your self");
         
-       
-        // Do not forget the "_;"! It will
-        // be replaced by the actual function
-        // body when the modifier is used.
-        _;
-    }
-    
-    
-    function addNode(uint parentNumber, string _name) public  returns (uint){ //notDuplicate(parentNumber, _name)
-        
-
-        bytes32[] storage pathToNode = flattenTree[parentNumber];
-        Node storage  parentNode = mainNode;
-        uint  index = 1;
-        // emit LogDebug("Got to 51");
-        //prepare string to be concatenated
-        strings.slice memory uniqueIdentifierPath = parentNode.name.toSlice().concat("->".toSlice()).toSlice();
-
-        while(parentNode.number!=parentNumber && index < pathToNode.length){
-            
-            bytes32 nextItem = pathToNode[index];
-            parentNode = parentNode.children[nextItem];
-        
-            uniqueIdentifierPath = uniqueIdentifierPath
-                                  .concat(parentNode.name.toSlice()).toSlice()
-                                  .concat("->".toSlice()).toSlice();
-            index++;
-        }
-        
-        uniqueIdentifierPath = uniqueIdentifierPath.concat(_name.toSlice()).toSlice();
-        string memory fullName = uniqueIdentifierPath.toString();
      
         Node memory newNode;
         newNode.name = _name;
         newNode.creator = msg.sender;
         newNode.number = nodeNumber;
-        newNode.uniqueIdentifier = keccak256(abi.encodePacked(fullName));
-        // emit LogDebug("Got to 75");
+
         
         //copy the path to the parent in the flatten array of the new Item: ???
         for (uint i=0; i<pathToNode.length; i++) {
@@ -188,15 +180,16 @@ contract SemanticNet {
         }
         
         //keeping the flatten array actual
-        flattenTree[newNode.number].push(newNode.uniqueIdentifier);
+        flattenTree[newNode.number].push(newNode.number);
         
         
-        nodeNumber++;   
+         
         
-        parentNode.children[newNode.uniqueIdentifier] = newNode;
-        parentNode.childrenKeys.push(newNode.uniqueIdentifier);
+        parentNode.children[nodeNumber] = newNode;
+        parentNode.childrenKeys.push(newNode.number);
         
-        emit AddingNode(msg.sender,newNode.number,fullName,newNode.uniqueIdentifier);
+        emit AddingNode(msg.sender,newNode.number,_name);
+        nodeNumber++;  
         
         return newNode.number;
     }
@@ -206,13 +199,21 @@ contract SemanticNet {
         url,doc,docx,ppt,pptx, sol
     }
     
-    // function checkChildrenForDuplicats(Node node, string name) internal pure returns (bool isDuplicate){
-        
-    //       for (uint j=0; j<node.childrenKeys.length; j++) {
-    //         Node  child = node.children[node.childrenKeys[j]];
-    //         int compareResult = child.name.toSlice().compare("foobie".toSlice());
-    //     }
-    // } 
+   function uintToString(uint v) internal pure returns (string str) {
+        uint maxlength = 100;
+        bytes memory reversed = new bytes(maxlength);
+        uint i = 0;
+        while (v != 0) {
+            uint remainder = v % 10;
+            v = v / 10;
+            reversed[i++] = byte(48 + remainder);
+        }
+        bytes memory s = new bytes(i);
+        for (uint j = 0; j < i; j++) {
+            s[j] = reversed[i - 1 - j];
+        }
+        str = string(s);
+    } 
     
     
     //Represents entity in the Blockchain Semantic Net
@@ -226,15 +227,15 @@ contract SemanticNet {
         string name;
         
         //keccak256 of the name + parent names recursivly 
-        bytes32 uniqueIdentifier;
+       // bytes32 uniqueIdentifier;
         
         //TODO: think about if should be tree or Graph???
         
         //related terms in format unique Identifier => node
-        mapping(bytes32 => Node)  children;
+        mapping(uint => Node)  children;
         
         //helper arrrays 
-        bytes32[] childrenKeys;
+        uint[] childrenKeys;
         
       
         //ipfs hash of term resource

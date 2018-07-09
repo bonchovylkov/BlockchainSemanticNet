@@ -193,22 +193,37 @@ $(function(){
 
     let sn = web3.eth.contract(semanticNetABI).at(semantiNetContractAddress);
     
-    sn.addNode(0,"test",function (err, trxHash){
+    // sn.addNode(0,"test",function (err, trxHash){
+    //     if(err){
+    //         console.log(err);
+    //     }
+
+    //     console.log(JSON.stringify(trxHash));
+
+    //     sn.nodeNumber(function (err, result){
+    //         if(err){
+    //             console.log(err);
+    //         }
+    
+    //         console.log(JSON.stringify(result));
+    //     });
+    // });
+
+    sn.nodeNumber(function (err, result){
         if(err){
             console.log(err);
         }
 
-        console.log(JSON.stringify(trxHash));
-
-        sn.nodeNumber(function (err, result){
-            if(err){
-                console.log(err);
-            }
-    
-            console.log(JSON.stringify(result));
-        });
+        console.log(JSON.stringify(result));
     });
 
+    sn.getNodeJson(0, function (err, result){
+        if(err){
+            console.log(err);
+        }
+
+        console.log(JSON.stringify(result));
+    });
   
 
 });

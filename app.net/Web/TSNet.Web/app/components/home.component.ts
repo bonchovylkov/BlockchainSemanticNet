@@ -3,6 +3,9 @@ import { NvD3Component } from "ng2-nvd3";
 import { Constants } from '../app.constants';
 import { setTimeout } from 'core-js';
 
+
+var self;
+
 @Component({
     moduleId: module.id,
     selector: 'home',
@@ -15,6 +18,10 @@ export class HomeComponent {
     nodeNumber = null;
     treeData = [];
     data = null;
+    modalTitle = "modal";
+    lastlySelectedNode = null;
+    sn = null;
+    newNodeName = null,
 
     constructor() {
 
@@ -27,36 +34,37 @@ export class HomeComponent {
 
     ngOnInit() {
 
-         
+
 
         var nodeJs = {
+            "number":0,
             "name": "",
-            "searchName":"",
-            "resources":[],
+            "searchName": "",
+            "resources": [],
             "parent": "null",
             "children": []
         };
 
         //web3
 
-        let sn = web3.eth.contract(Constants.semanticNetABI).at(Constants.semantiNetContractAddress);
-        var self = this;
+        this.sn = web3.eth.contract(Constants.semanticNetABI).at(Constants.semantiNetContractAddress);
+        self = this;
         var index = 0;
 
         self.data = setupTreeFromBlockchain(nodeJs, index);
         self.treeData.push(self.data);
-        
+
         //setTimeout( ()=> {
-            
+
         //}, 3000);
-       
+
 
         //this.setUpTreeview(this.treeData);
-       // console.log(treeData);
+        // console.log(treeData);
 
-      function setupTreeFromBlockchain(treeNode, index) {
+        function setupTreeFromBlockchain(treeNode, index) {
 
-            sn.getNodeJson(index, function (err, result) {
+            self.sn.getNodeJson(index, function (err, result) {
                 if (err) {
                     console.log(err);
                 }
@@ -65,6 +73,8 @@ export class HomeComponent {
 
                 treeNode.name = index + "->" + result[0];
                 treeNode.searchName = result[0] + "+Blockchain";
+                treeNode.number = index;
+
                 var children = result[3].split(",");
                 children = children.filter((s) => s != "");
 
@@ -81,19 +91,23 @@ export class HomeComponent {
 
                     treeNode.children.push(childNode);
 
-                    
+
                 }
 
-          });
+            });
 
-          //var newObject = $.extend(true, {}, treeNode);
-          //var updatedData = [newObject];
 
-          //self.setUpTreeview(updatedData);
-         
-          return treeNode;
+
+            //if (treeNode.parent === "null") {
+            //    var newObject = $.extend(true, {}, treeNode);
+            //    var updatedData = [newObject];
+
+            //    self.setUpTreeview(updatedData);
+            //}
+
+            return treeNode;
         }
-     
+
 
         //var treeData = [
         //    {
@@ -123,7 +137,7 @@ export class HomeComponent {
         //];
 
 
-         
+
 
 
 
@@ -145,7 +159,7 @@ export class HomeComponent {
             .size([height, width]);
 
         var diagonal = d3.svg.diagonal()
-            .projection(function (d:any) { return [d.y, d.x]; });
+            .projection(function (d: any) { return [d.y, d.x]; });
 
         var svg = d3.select("svg")
             .attr("width", width + margin.right + margin.left)
@@ -168,21 +182,32 @@ export class HomeComponent {
                 links = tree.links(nodes);
 
             // Normalize for fixed-depth.
-            nodes.forEach(function (d:any) { d.y = d.depth * 180; });
+            nodes.forEach(function (d: any) { d.y = d.depth * 180; });
 
             // Update the nodes…
             var node = svg.selectAll("g.node")
-                .data(nodes, function (d:any) { return d.id || (d.id = ++i); });
+                .data(nodes, function (d: any) { return d.id || (d.id = ++i); });
 
             // Enter any new nodes at the parent's previous position.
             var nodeEnter = node.enter().append("g")
                 .attr("class", "node")
-                .attr("transform", function (d:any) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+                .attr("transform", function (d: any) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
                 .on("click", click);
+
+            
 
             nodeEnter.append("circle")
                 .attr("r", 1e-6)
-                .style("fill", function (d:any) { return d._children ? "lightsteelblue" : "#fff"; });
+                .style("fill", function (d: any) { return d._children ? "lightsteelblue" : "#fff"; });
+                //.html("<span class='glyphicon'>&#x2b;</span>");
+
+
+            node.append("text")
+                    .attr("x", -3)
+                .attr("y", 3)
+                .attr("width", 24)
+                .attr("height", 24)
+                .html("&#x2b;");
 
             //node.append("a")
             //    .attr("xlink:href", function (d: any) { return  "https://www.google.bg/search?q=" + d.searchName; })
@@ -197,7 +222,7 @@ export class HomeComponent {
             //    .attr("height", 35)
             //    .style("fill", "green")
             //    .attr("width", 66)
-               
+
 
             node.append("text")
                 .attr("x", -20)
@@ -205,15 +230,15 @@ export class HomeComponent {
                 .style("fill", "black")
                 .on("click", openLink)
                 .html("&#9432;More info ");
-               // .text();
+            // .text();
 
 
 
             nodeEnter.append("text")
-                .attr("x", function (d:any) { return d.children || d._children ? -13 : 13; })
+                .attr("x", function (d: any) { return d.children || d._children ? -13 : 13; })
                 .attr("dy", ".35em")
-                .attr("text-anchor", function (d:any) { return d.children || d._children ? "end" : "start"; })
-                .text(function (d:any) { return d.name; })
+                .attr("text-anchor", function (d: any) { return d.children || d._children ? "end" : "start"; })
+                .text(function (d: any) { return d.name; })
                 .style("color", "#000");
 
             //node.append("image")
@@ -229,11 +254,11 @@ export class HomeComponent {
             // Transition nodes to their new position.
             var nodeUpdate = node.transition()
                 .duration(duration)
-                .attr("transform", function (d:any) { return "translate(" + d.y + "," + d.x + ")"; });
+                .attr("transform", function (d: any) { return "translate(" + d.y + "," + d.x + ")"; });
 
             nodeUpdate.select("circle")
                 .attr("r", 10)
-                .style("fill", function (d:any) { return d._children ? "lightsteelblue" : "#fff"; });
+                .style("fill", function (d: any) { return d._children ? "lightsteelblue" : "#fff"; });
 
             nodeUpdate.select("text")
                 .style("fill-opacity", 1);
@@ -241,7 +266,7 @@ export class HomeComponent {
             // Transition exiting nodes to the parent's new position.
             var nodeExit = node.exit().transition()
                 .duration(duration)
-                .attr("transform", function (d:any) { return "translate(" + source.y + "," + source.x + ")"; })
+                .attr("transform", function (d: any) { return "translate(" + source.y + "," + source.x + ")"; })
                 .remove();
 
             nodeExit.select("circle")
@@ -252,12 +277,12 @@ export class HomeComponent {
 
             // Update the links…
             var link = svg.selectAll("path.link")
-                .data(links, function (d:any) { return d.target.id; });
+                .data(links, function (d: any) { return d.target.id; });
 
             // Enter any new links at the parent's previous position.
             link.enter().insert("path", "g")
                 .attr("class", "link")
-                .attr("d", function (d:any) {
+                .attr("d", function (d: any) {
                     var o = { x: source.x0, y: source.y0 };
                     return diagonal({ source: o, target: o });
                 });
@@ -270,27 +295,33 @@ export class HomeComponent {
             // Transition exiting nodes to the parent's new position.
             link.exit().transition()
                 .duration(duration)
-                .attr("d", function (d:any) {
+                .attr("d", function (d: any) {
                     var o = { x: source.x, y: source.y };
                     return diagonal({ source: o, target: o });
                 })
                 .remove();
 
             // Stash the old positions for transition.
-            nodes.forEach(function (d:any) {
+            nodes.forEach(function (d: any) {
                 d.x0 = d.x;
                 d.y0 = d.y;
             });
         }
 
 
-        function openLink(d:any) {
+        function openLink(d: any) {
             window.open("https://www.google.bg/search?q=" + d.searchName, '_blank');
+
+            event.stopPropagation();
         }
 
         //// Toggle children on click.
-        function click(d:any) {
-            console.log(d);
+        function click(node: any) {
+            console.log(node);
+            self.modalTitle = "Add new node to: " + node.name;
+            self.lastlySelectedNode = node;
+
+            $('#exampleModal').modal();
             //if (d.children) {
             //    d._children = d.children;
             //    d.children = null;
@@ -300,6 +331,28 @@ export class HomeComponent {
             //}
             //update(d:any);
         }
+    }
+
+    addNode() {
+
+        self.sn.addNode(self.lastlySelectedNode.number, self.newNodeName, function (err, trxHash) {
+         if(err){
+             console.log(err);
+             
+             
+         }
+
+            console.log(JSON.stringify(trxHash));
+            $('#exampleModal').modal('hide');
+
+         //sn.nodeNumber(function (err, result){
+         //    if(err){
+         //        console.log(err);
+         //    }
+
+         //    console.log(JSON.stringify(result));
+         //});
+     });
     }
 
 }

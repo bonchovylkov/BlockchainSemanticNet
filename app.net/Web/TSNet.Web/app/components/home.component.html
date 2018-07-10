@@ -1,13 +1,34 @@
 ﻿
-
- <div class="row">
-     {{nodeNumber}}
- </div>
-
+<div class="row">
+    {{nodeNumber}}
+</div>
 <svg>
-
 </svg>
-
 <button (click)="test()">
     click
 </button>
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">{{modalTitle}}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newTermName">New term name</label>
+                    <input type="email" class="form-control" id="newTermName" aria-describedby="emailHelp" [(ngModel)]="newNodeName" placeholder="newTermName">
+                    <small id="emailHelp" class="form-text text-muted">This new node will attach to currently selected one.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" (click)="addNode()">Save node</button>
+            </div>
+        </div>
+    </div>
+</div>
+

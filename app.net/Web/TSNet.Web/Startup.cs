@@ -33,6 +33,7 @@
     using Microsoft.IdentityModel.Tokens;
 
     using Newtonsoft.Json;
+    using TSNet.Services;
 
     public class Startup
     {
@@ -102,6 +103,7 @@
             // Application services
             services.AddTransient<IEmailSender, NullMessageSender>();
             services.AddTransient<ISmsSender, NullMessageSender>();
+            services.AddTransient<IIpfsService, IpfsService>();
 
             // Identity stores
             services.AddTransient<IUserStore<ApplicationUser>, ApplicationUserStore>();

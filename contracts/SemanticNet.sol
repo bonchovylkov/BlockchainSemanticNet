@@ -1,7 +1,7 @@
 
 pragma solidity ^0.4.24;
-//import "github.com/Arachnid/solidity-stringutils/strings.sol";
-import "./strings.sol";
+import "github.com/Arachnid/solidity-stringutils/strings.sol";
+//import "./strings.sol";
 //import "./ConcatUtils.sol";
 
 
@@ -21,6 +21,8 @@ contract SemanticNet {
     //contains node number -> uniqueIdentifier of all nested items
     mapping(uint=>uint[]) public flattenTree;
     
+    mapping(address=>int) public votesSum;
+    
     constructor() public {
         owner = msg.sender;
         mainNode.name = "Blockchain";
@@ -34,15 +36,88 @@ contract SemanticNet {
         
          addNode(0,"Block"); //1
          addNode(1,"Transaction"); //2
-         addNode(0,"Node"); //3
+        // addNode(0,"Node"); //3
          
         //  addNode(3,"Peer",owner);//4
         //  addNode(0,"Miner",owner);//5
         //  addNode(0,"Wallet",owner);//6
     }
     
+       modifier indexRange(uint nodeIndex)
+    {
+        require(nodeIndex<nodeNumber, "Please provide existing index");
+        // Do not forget the "_;"! It will
+        // be replaced by the actual function
+        // body when the modifier is used.
+        _;
+    }
+    
+    function getUserVotes(address user) view public returns (int){
+        return votesSum[user];
+    }
+    
+    function vote(bool positive, uint nodeIndex) public {
+        
+        uint[] storage pathToNode = flattenTree[nodeIndex];
+        Node storage  ourNode = mainNode;
+        uint  index = 1;
+
+        //constant speed of searching
+        while(ourNode.number!= nodeIndex && index < pathToNode.length){
+            
+            uint nextItem = pathToNode[index];
+            ourNode = ourNode.children[nextItem];
+            
+            index++;
+        }
+        
+        if(positive){
+            ourNode.votes++;
+            votesSum[ourNode.creator]++;
+        }else{
+            ourNode.votes--;
+            votesSum[ourNode.creator]--;
+        }
+    }
+    
+    
+     function addResources(uint nodeIndex,uint resourcesCount,string hashes,string contentTypes) public indexRange(nodeIndex) {
+
+        uint[] storage pathToNode = flattenTree[nodeIndex];
+        Node storage  ourNode = mainNode;
+        uint  index = 1;
+
+        //constant speed of searching
+        while(ourNode.number!= nodeIndex && index < pathToNode.length){
+            
+            uint nextItem = pathToNode[index];
+            ourNode = ourNode.children[nextItem];
+            
+            index++;
+        }
+        
+        
+         var h = hashes.toSlice();
+         var t = contentTypes.toSlice();
+          strings.slice memory hash;
+          strings.slice memory cType;
+        // s.split(".".toSlice(), part); // part and return value is "www"
+        // s.split(".".toSlice(), part); // part and return value is "google"
+         for (uint j=0; j< resourcesCount; j++) {
+             
+             h.split(",".toSlice(), hash); 
+             t.split(",".toSlice(), cType); 
+           // ourNode.resourcesHashes[hash.toString()]=cType.toString();
+            ourNode.resourcesKeys.push((hash.concat("-".toSlice()).toSlice().concat(cType).toSlice()).toString());
+             
+         }
+        
+        
+    
+     }
+    
     //name,creator,resourcesJoined, childrenJoined
-    function getNodeJson(uint nodeIndex) view public returns (string,address,string,string){
+    function getNodeJson(uint nodeIndex) view public  returns (string,address,string,string,int){ //indexRange(nodeIndex)
         require(nodeIndex<nodeNumber, "Please provide existing index");
         
         uint[] storage pathToNode = flattenTree[nodeIndex];
@@ -72,44 +147,18 @@ contract SemanticNet {
           
           childrenItems = childrenItems
           .concat(uintToString(ourNode.children[ourNode.childrenKeys[j]].number).toSlice()).toSlice()
-          //.concat(ourNode.children[ourNode.childrenKeys[j]].name.toSlice()).toSlice()
           .concat(",".toSlice()).toSlice();
          }
         
-        //       string memory childrenItems = "{";
-        //   for (uint j=0; j< ourNode.childrenKeys.length; j++) {
-          
-        //   uint number = ourNode.children[ourNode.childrenKeys[j]].number;
-        //   string  numberStr = uintToString(number);
-        //   string name = ourNode.children[ourNode.childrenKeys[j]].name;
-        //   string pair = concatTwoStrings(numberStr,name,":");
-          
-        //   childrenItems = concatTwoStrings(childrenItems,pair, ""); 
-        //   childrenItems
-        //   .concat(ourNode.children[ourNode.childrenKeys[j]].name.toSlice()).toSlice()
-        //   .concat(",".toSlice()).toSlice();
-        //  }
         
-        return (ourNode.name, ourNode.creator,resources.toString(),childrenItems.toString());
-        
-        
-        // string[] memory resources;
-        //  for (uint i=0; i< ourNode.resourcesKeys.length; i++) {
-          
-        //   strings.slice memory resourceKeyValue 
-        //   = ourNode.resourcesKeys[i].toSlice().concat(":".toSlice()).toSlice()
-        //   .concat(ourNode..toSlice()).toSlice();
-        // }
-        
-        
+        return (ourNode.name, ourNode.creator,resources.toString(),childrenItems.toString(),ourNode.votes);
         
         
     }
     
  
     
-     function removeNode(uint parentNumber, uint nodeIndex)  public  {
-         require(index<nodeNumber, "Please provide existing index");
+     function removeNode(uint parentNumber, uint nodeIndex)  public  indexRange(nodeIndex) {
         
         uint[] storage pathToNode = flattenTree[parentNumber];
         Node storage  parentNode = mainNode;
@@ -195,9 +244,6 @@ contract SemanticNet {
     }
     
     
-      enum ReseurceType {
-        url,doc,docx,ppt,pptx, sol,img
-    }
     
    function uintToString(uint v) internal pure returns (string str) {
         uint maxlength = 100;
@@ -238,8 +284,8 @@ contract SemanticNet {
         uint[] childrenKeys;
         
       
-        //ipfs hash of term resource
-        mapping(string=>ReseurceType)  resourcesHashes;
+        //ipfs hash of term resource ->Hash->content type
+       // mapping(string=>string)  resourcesHashes;
         
         string[] resourcesKeys;
         

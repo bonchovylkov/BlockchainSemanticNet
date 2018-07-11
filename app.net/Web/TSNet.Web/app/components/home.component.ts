@@ -1,7 +1,7 @@
 ﻿import { Component } from '@angular/core';
 import { NvD3Component } from "ng2-nvd3";
 import { Constants } from '../app.constants';
-import { setTimeout } from 'core-js';
+import { setTimeout, log } from 'core-js';
 
 
 var self;
@@ -21,7 +21,7 @@ export class HomeComponent {
     modalTitle = "modal";
     lastlySelectedNode = null;
     sn = null;
-    newNodeName = null,
+    newNodeName = null;
 
     constructor() {
 
@@ -30,6 +30,10 @@ export class HomeComponent {
     test() {
         console.log(this.treeData);
         this.setUpTreeview(this.treeData);
+
+        $('.resource-holder').hover((e) => {
+            $(e.target).childre().show();
+        });
     }
 
     ngOnInit() {
@@ -203,8 +207,8 @@ export class HomeComponent {
 
 
             node.append("text")
-                    .attr("x", -3)
-                .attr("y", 3)
+                    .attr("x", -4)
+                .attr("y", 4)
                 .attr("width", 24)
                 .attr("height", 24)
                 .html("&#x2b;");
@@ -230,6 +234,26 @@ export class HomeComponent {
                 .style("fill", "black")
                 .on("click", openLink)
                 .html("&#9432;More info ");
+
+            node.append("text")
+                .attr("x", -20)
+                .attr("y", 42)
+                .style("fill", "black")
+                //.on("click", openLink)
+                .html(function (d: any) {
+                    return "<div class='resource-holder'>IPFS Resources <div style='display:none'>" + d.resources.join() + "</div></div>";
+                });
+
+
+            
+            //
+
+            node.append("text")
+                .attr("x", -20)
+                .attr("y", 54)
+                .style("fill", "black")
+                .on("click", addResource)
+                .html("&#x2b;Add resource ");
             // .text();
 
 
@@ -309,8 +333,15 @@ export class HomeComponent {
         }
 
 
-        function openLink(d: any) {
-            window.open("https://www.google.bg/search?q=" + d.searchName, '_blank');
+        function openLink(node: any) {
+            window.open("https://www.google.bg/search?q=" + node.searchName, '_blank');
+
+            event.stopPropagation();
+        }
+
+        function addResource(node: any) {
+            self.lastlySelectedNode = node;
+            $("#input-trigger").click();
 
             event.stopPropagation();
         }
@@ -344,15 +375,61 @@ export class HomeComponent {
 
             console.log(JSON.stringify(trxHash));
             $('#exampleModal').modal('hide');
-
-         //sn.nodeNumber(function (err, result){
-         //    if(err){
-         //        console.log(err);
-         //    }
-
-         //    console.log(JSON.stringify(result));
-         //});
-     });
+        });
     }
+
+    change(e) {
+        this.uploadCallback(e.currentTarget.files);
+        e.currentTarget.value = "";
+    };
+
+
+    public uploadCallback(fileList: any) {
+
+        var fd = new FormData();
+        for (var i = 0; i < fileList.length; i++) {
+            fd.append(fileList[i].name, fileList[i]);
+        }
+
+        this.uploadFile(fd, "/api/IPFS/addfiles");
+           
+        
+    };
+
+    public uploadFile(fd: any, url: string) {
+
+        var self = this;
+        var percentUploaded = 0;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url);
+        /* event listners */
+        xhr.upload.addEventListener("progress", function (e) {
+
+        }, false);
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                var result = $.parseJSON(xhr.responseText);
+
+                var hashes = result.map((s)=>s.hash).join();
+                var types = result.map((s) => s.contentType).join();;
+                //for (var i = 0; i < result.length; i++) {
+
+                //}
+
+                self.sn.addResources(self.lastlySelectedNode.number, result.length, hashes, types, function (err, result) {
+                     if(err){
+                         console.log(err);
+                     }
+
+                     console.log(JSON.stringify(result));
+                 });
+               
+            }
+        };
+        xhr.send(fd);
+
+    };
 
 }

@@ -12,6 +12,7 @@ using TSNet.Web.Infrastructure.ViewModels;
 
 namespace TSNet.Web.Controllers
 {
+    [Route("api/IPFS")]
     public class IPFSController : Controller
     {
         private IIpfsService ipfsService;
@@ -23,8 +24,8 @@ namespace TSNet.Web.Controllers
     }
 
         [HttpPost]
-        [Route("AddFile")]
-        public async  Task<IActionResult> AddFile()
+        [Route("AddFiles")]
+        public async  Task<IActionResult> AddFiles()
         {
             var httpRequest = this._contextAccessor.HttpContext.Request;
             var postedFile = httpRequest.Form.Files;

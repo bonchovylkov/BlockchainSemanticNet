@@ -7,27 +7,27 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a routerLink="/" class="navbar-brand">TSNet.Web</a>
+            <a routerLink="/" class="navbar-brand">Terms semantic blockchain net</a>
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li><a routerLink="/">Home</a></li>
-                <li *ngIf="isUserAuthorized"><a routerLink="/user/todo-items">TODO Items</a></li>
+                <!--<li *ngIf="isUserAuthorized"><a routerLink="/user/todo-items">TODO Items</a></li>-->
             </ul>
 
-            <ul *ngIf="isUserAuthorized" class="nav navbar-nav navbar-right">
+            <!--<ul *ngIf="isUserAuthorized" class="nav navbar-nav navbar-right">
                 <li *ngIf="userEmail">
                     <a>Hello, {{userEmail}}!</a>
                 </li>
                 <li>
                     <button (click)="logout()" class="btn btn-link navbar-btn navbar-link">Log out</button>
                 </li>
-            </ul>
+            </ul>-->
 
-            <ul *ngIf="!isUserAuthorized" class="nav navbar-nav navbar-right">
+            <!--<ul *ngIf="!isUserAuthorized" class="nav navbar-nav navbar-right">
                 <li><a routerLink="/account/register">Register</a></li>
                 <li><a routerLink="/account/login">Log in</a></li>
-            </ul>
+            </ul>-->
         </div>
     </div>
 </nav>

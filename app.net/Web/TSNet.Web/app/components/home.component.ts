@@ -161,6 +161,9 @@ export class HomeComponent {
         var margin = { top: 20, right: 120, bottom: 20, left: 120 },
             width = 960 - margin.right - margin.left,
             height = 500 - margin.top - margin.bottom;
+        //var margin = { top: 100, right: 50, bottom: 100, left: 50 },
+        //    width = 900 - margin.left - margin.right,
+        //    height = 500 - margin.top - margin.bottom;
 
         var i = 0,
             duration = 750,
@@ -170,13 +173,16 @@ export class HomeComponent {
             .size([height, width]);
 
         var diagonal = d3.svg.diagonal()
-            .projection(function (d: any) { return [d.y, d.x]; });
+            .projection(function (d: any) { return [d.x, d.y]; });
 
         var svg = d3.select("svg")
-            .attr("width", width + margin.right + margin.left)
+            //.attr("width", width + margin.right + margin.left)
+            //.attr("height", height + margin.top + margin.bottom)
+            .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        
 
         root = treeData[0];
         root.x0 = height / 2;
@@ -202,23 +208,23 @@ export class HomeComponent {
             // Enter any new nodes at the parent's previous position.
             var nodeEnter = node.enter().append("g")
                 .attr("class", "node")
-                .attr("transform", function (d: any) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+                .attr("transform", function (d: any) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
                 .on("click", click);
 
             
 
-            nodeEnter.append("circle")
-                .attr("r", 1e-6)
-                .style("fill", function (d: any) { return d._children ? "lightsteelblue" : "#fff"; });
+            //nodeEnter.append("circle")
+            //    .attr("r", 1e-3)
+            //    .style("fill", function (d: any) { return d._children ? "lightsteelblue" : "#fff"; });
                 //.html("<span class='glyphicon'>&#x2b;</span>");
 
 
-            node.append("text")
-                    .attr("x", -4)
-                .attr("y", 4)
-                .attr("width", 24)
-                .attr("height", 24)
-                .html("&#x2b;");
+            //node.append("text")
+            //        .attr("x", -4)
+            //    .attr("y", 4)
+            //    .attr("width", 24)
+            //    .attr("height", 24)
+            //    .html("&#x2b;");
 
             //node.append("a")
             //    .attr("xlink:href", function (d: any) { return  "https://www.google.bg/search?q=" + d.searchName; })
@@ -236,16 +242,18 @@ export class HomeComponent {
 
 
             node.append("text")
-                .attr("x", -20)
+                .attr("x", 0)
                 .attr("y", 30)
                 .style("fill", "black")
+                .style("font-weight", "bold")
                 .on("click", openLink)
-                .html("&#9432;More info ");
+                .html("&#9432; More info ");
 
             node.append("text")
-                .attr("x", -20)
+                .attr("x", 0)
                 .attr("y", 42)
                 .style("fill", "black")
+                .style("font-weight", "bold")
                 .on('click', function (d,i) {
                     $("#resources-" + i).modal('show');
                     event.stopPropagation();
@@ -253,15 +261,15 @@ export class HomeComponent {
                 //.on('mouseout', function (d, i) {
                 //    $("#resources-" + i).hide();
                 //})
-                .html("IPFS Resources");
+                .html("&#x26C3; IPFS Resources");
 
             node.append("foreignObject")
-                .attr("x", -20)
-                .attr("y", 42)
+               // .attr("x", 0)
+                //.attr("y", 42)
                 //.attr("width", 480)
                 //.attr("height", 500)
                 .append("xhtml:body")
-                .style("font", "14px 'Helvetica Neue'")
+                //.style("font", "14px 'Helvetica Neue'")
                 //.html(function (d: any,i:any) {
                 //    return " <div id='resources-" + i + "' style='display:none'>IPFS Resources "+ d.resources.join() + "</div>";
                 //});
@@ -299,20 +307,48 @@ export class HomeComponent {
             //
 
             node.append("text")
-                .attr("x", -20)
+                .attr("x", -0)
                 .attr("y", 54)
                 .style("fill", "black")
+                .style("font-weight", "bold")
                 .on("click", addResource)
-                .html("&#x2b;Add resource ");
+                .html("&#x2b; Add resource ");
+
+            node.append("text")
+                .attr("x", 0)
+                .attr("y", -20)
+                .style("font-size", "18")
+                .on("click", function (d) { return vote(true, d.number) })
+                .html("&#x25B2;");
+
+            node.append("text")
+                .attr("x", 23)
+                .attr("y", -20)
+                .style("font-size", "18")
+                //.on("click", addResource)
+                .html(function (d) {
+                    return d.votes;
+                });
+
+            node.append("text")
+                .attr("x", 40)
+                .attr("y", -20)
+                .style("font-size", "18")
+                .on("click", function (d) { return vote(false, d.number ) })
+                .html("&#x25BD;");
+
+
+         
             // .text();
 
 
 
-            nodeEnter.append("text")
-                .attr("x", function (d: any) { return d.children || d._children ? -13 : 13; })
+            nodeEnter.append("foreignObject")
+                //.attr("x", function (d: any) { return d.children || d._children ? -20 : 20; })
+                 .attr("y",-10)
                 .attr("dy", ".35em")
                 .attr("text-anchor", function (d: any) { return d.children || d._children ? "end" : "start"; })
-                .text(function (d: any) { return d.name; })
+                .html(function (d: any) { return "<span class='badge badge-primary'>" + d.name + " &#x2b;</span>"; })
                 .style("color", "#000");
 
             //node.append("image")
@@ -328,11 +364,11 @@ export class HomeComponent {
             // Transition nodes to their new position.
             var nodeUpdate = node.transition()
                 .duration(duration)
-                .attr("transform", function (d: any) { return "translate(" + d.y + "," + d.x + ")"; });
+                .attr("transform", function (d: any) { return "translate(" + d.x + "," + d.y + ")"; });
 
-            nodeUpdate.select("circle")
-                .attr("r", 10)
-                .style("fill", function (d: any) { return d._children ? "lightsteelblue" : "#fff"; });
+            //nodeUpdate.select("circle")
+            //    .attr("r", 15)
+            //    .style("fill", function (d: any) { return d._children ? "lightsteelblue" : "#fff"; });
 
             nodeUpdate.select("text")
                 .style("fill-opacity", 1);
@@ -412,6 +448,21 @@ export class HomeComponent {
             //}
             //update(d:any);
         }
+
+        function vote(positive, index) {
+
+            self.sn.vote(positive, index, function (err, trxHash) {
+                if (err) {
+                    console.log(err);
+
+
+                }
+
+                console.log(JSON.stringify(trxHash));
+            });
+
+            event.stopPropagation();
+        }
     }
 
     addNode() {
@@ -427,6 +478,8 @@ export class HomeComponent {
             $('#exampleModal').modal('hide');
         });
     }
+
+   
 
     change(e) {
         this.uploadCallback(e.currentTarget.files);

@@ -16,6 +16,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="app\content\NewFolder\**" />
+    <Content Remove="app\content\NewFolder\**" />
+    <EmbeddedResource Remove="app\content\NewFolder\**" />
+    <None Remove="app\content\NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AdditionalFiles Include="..\..\stylecop.json" />
   </ItemGroup>
 

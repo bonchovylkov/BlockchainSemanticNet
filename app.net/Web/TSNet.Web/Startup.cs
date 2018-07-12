@@ -47,50 +47,7 @@
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Framework services
-            services.AddDbContextPool<ApplicationDbContext>(
-                options => options.UseSqlServer(this.configuration.GetConnectionString("DefaultConnection")));
-
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.configuration["JwtTokenValidation:Secret"]));
-
-            services.Configure<TokenProviderOptions>(opts =>
-            {
-                opts.Audience = this.configuration["JwtTokenValidation:Audience"];
-                opts.Issuer = this.configuration["JwtTokenValidation:Issuer"];
-                opts.Path = "/api/account/login";
-                opts.Expiration = TimeSpan.FromDays(15);
-                opts.SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
-            });
-
-            services
-                .AddAuthentication()
-                .AddJwtBearer(opts =>
-                {
-                    opts.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = signingKey,
-                        ValidateIssuer = true,
-                        ValidIssuer = this.configuration["JwtTokenValidation:Issuer"],
-                        ValidateAudience = true,
-                        ValidAudience = this.configuration["JwtTokenValidation:Audience"],
-                        ValidateLifetime = true
-                    };
-                });
-
-            services
-                .AddIdentity<ApplicationUser, ApplicationRole>(options =>
-                {
-                    options.Password.RequiredLength = 6;
-                    options.Password.RequireDigit = false;
-                    options.Password.RequireLowercase = false;
-                    options.Password.RequireNonAlphanumeric = false;
-                    options.Password.RequireUppercase = false;
-                })
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddUserStore<ApplicationUserStore>()
-                .AddRoleStore<ApplicationRoleStore>()
-                .AddDefaultTokenProviders();
+            
 
             services.AddMvc();
 
@@ -105,9 +62,6 @@
             services.AddTransient<ISmsSender, NullMessageSender>();
             services.AddTransient<IIpfsService, IpfsService>();
 
-            // Identity stores
-            services.AddTransient<IUserStore<ApplicationUser>, ApplicationUserStore>();
-            services.AddTransient<IRoleStore<ApplicationRole>, ApplicationRoleStore>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -115,18 +69,18 @@
         {
             AutoMapperConfig.RegisterMappings(typeof(TodoItemViewModel).GetTypeInfo().Assembly);
 
-            // Seed data on application startup
-            using (var serviceScope = app.ApplicationServices.CreateScope())
-            {
-                var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            //// Seed data on application startup
+            //using (var serviceScope = app.ApplicationServices.CreateScope())
+            //{
+            //    var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                if (env.IsDevelopment())
-                {
-                    dbContext.Database.Migrate();
-                }
+            //    if (env.IsDevelopment())
+            //    {
+            //        dbContext.Database.Migrate();
+            //    }
 
-                ApplicationDbContextSeeder.Seed(dbContext, serviceScope.ServiceProvider);
-            }
+            //    ApplicationDbContextSeeder.Seed(dbContext, serviceScope.ServiceProvider);
+            //}
 
             if (env.IsDevelopment())
             {
@@ -150,9 +104,7 @@
 
             app.UseFileServer();
 
-            app.UseJwtBearerTokens(
-                app.ApplicationServices.GetRequiredService<IOptions<TokenProviderOptions>>(),
-                PrincipalResolver);
+
 
             app.UseMvc(routes => routes.MapRoute("default", "api/{controller}/{action}/{id?}"));
         }

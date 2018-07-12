@@ -173,7 +173,7 @@ export class HomeComponent {
             .size([height, width]);
 
         var diagonal = d3.svg.diagonal()
-            .projection(function (d: any) { return [d.x, d.y]; });
+            .projection(function (d: any) { return [d.y, d.x]; });
 
         var svg = d3.select("svg")
             //.attr("width", width + margin.right + margin.left)
@@ -208,7 +208,7 @@ export class HomeComponent {
             // Enter any new nodes at the parent's previous position.
             var nodeEnter = node.enter().append("g")
                 .attr("class", "node")
-                .attr("transform", function (d: any) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
+                .attr("transform", function (d: any) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
                 .on("click", click);
 
             
@@ -364,7 +364,7 @@ export class HomeComponent {
             // Transition nodes to their new position.
             var nodeUpdate = node.transition()
                 .duration(duration)
-                .attr("transform", function (d: any) { return "translate(" + d.x + "," + d.y + ")"; });
+                .attr("transform", function (d: any) { return "translate(" + d.y + "," + d.x + ")"; });
 
             //nodeUpdate.select("circle")
             //    .attr("r", 15)

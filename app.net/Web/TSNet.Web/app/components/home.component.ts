@@ -22,6 +22,15 @@ export class HomeComponent {
     lastlySelectedNode = null;
     sn = null;
     newNodeName = null;
+    nodeJs = {
+        "number": 0,
+        "name": "",
+        "searchName": "",
+        "resources": [],
+        "parent": "null",
+        "children": [],
+        "votes": 0
+    };
 
     constructor() {
 
@@ -31,132 +40,89 @@ export class HomeComponent {
         console.log(this.treeData);
         this.setUpTreeview(this.treeData);
 
-        $('.resource-holder').hover((e) => {
-            $(e.target).childre().show();
-        });
+    }
+
+    ngAfterContentInit() {
+        window.setTimeout(() => {
+            this.setUpTreeview(this.treeData);
+        }, 2000);
+
+        //window.setTimeout(() => {
+        //    this.setUpTreeview(this.treeData);
+        //}, 5000);
+     
     }
 
     ngOnInit() {
 
-
-
-        var nodeJs = {
-            "number":0,
-            "name": "",
-            "searchName": "",
-            "resources": [],
-            "parent": "null",
-            "children": [],
-            "votes":0
-        };
-
-        //web3
-
-        this.sn = web3.eth.contract(Constants.semanticNetABI).at(Constants.semantiNetContractAddress);
         self = this;
-        var index = 0;
+        //web3
+        this.sn = web3.eth.contract(Constants.semanticNetABI).at(Constants.semantiNetContractAddress);
+        this.data = this.setupTreeFromBlockchain(this.nodeJs, 0);
+        this.treeData.push(self.data);
 
-        self.data = setupTreeFromBlockchain(nodeJs, index);
-        self.treeData.push(self.data);
-
-        //setTimeout( ()=> {
-
-        //}, 3000);
-
-
-        //this.setUpTreeview(this.treeData);
-        // console.log(treeData);
-
-        function setupTreeFromBlockchain(treeNode, index) {
-
-            self.sn.getNodeJson(index, function (err, result) {
-                if (err) {
-                    console.log(err);
-                }
-                console.log(JSON.stringify(result));
-
-
-                treeNode.name = index + "->" + result[0];
-                treeNode.searchName = result[0] + "+Blockchain";
-                treeNode.number = index;
-                treeNode.votes = result[4];
-                var resources = result[2].split(',').filter((s) => s != "");
-                if (resources.length) {
-                    treeNode.resources =  treeNode.resources.concat(resources);
-                }
-               
-
-                var children = result[3].split(",");
-                children = children.filter((s) => s != "");
-
-                for (var child in children) {
-
-                    var childNode = setupTreeFromBlockchain({
-                        "name": "",
-                        "resources": [],
-                        "parent": treeNode.name,
-                        "children": []
-                    }, children[child]);
-
-
-
-                    treeNode.children.push(childNode);
-
-
-                }
-
-            });
-
-
-
-            //if (treeNode.parent === "null") {
-            //    var newObject = $.extend(true, {}, treeNode);
-            //    var updatedData = [newObject];
-
-            //    self.setUpTreeview(updatedData);
-            //}
-
-            return treeNode;
-        }
-
-
-        //var treeData = [
-        //    {
-        //        "name": "Top Level",
-        //        "parent": "null",
-        //        "children": [
-        //            {
-        //                "name": "Level 2: A",
-        //                "parent": "Top Level",
-        //                "children": [
-        //                    {
-        //                        "name": "Son of A",
-        //                        "parent": "Level 2: A"
-        //                    },
-        //                    {
-        //                        "name": "Daughter of A",
-        //                        "parent": "Level 2: A"
-        //                    }
-        //                ]
-        //            },
-        //            {
-        //                "name": "Level 2: B",
-        //                "parent": "Top Level"
-        //            }
-        //        ]
-        //    }
-        //];
-
-
-
-
-
+        
 
 
 
     }
 
+     setupTreeFromBlockchain(treeNode, index) {
+
+        self.sn.getNodeJson(index, function (err, result) {
+            if (err) {
+                console.log(err);
+            }
+            console.log(JSON.stringify(result));
+
+
+            treeNode.name = index + "->" + result[0];
+            treeNode.searchName = result[0] + "+Blockchain";
+            treeNode.number = index;
+            treeNode.votes = result[4];
+            var resources = result[2].split(',').filter((s) => s != "");
+            if (resources.length) {
+                treeNode.resources = treeNode.resources.concat(resources);
+            }
+
+
+            var children = result[3].split(",");
+            children = children.filter((s) => s != "");
+
+            for (var child in children) {
+
+                var childNode = self.setupTreeFromBlockchain({
+                    "name": "",
+                    "resources": [],
+                    "parent": treeNode.name,
+                    "children": []
+                }, children[child]);
+
+
+
+                treeNode.children.push(childNode);
+
+
+            }
+
+    });
+
+
+
+    //if (treeNode.parent === "null") {
+    //    var newObject = $.extend(true, {}, treeNode);
+    //    var updatedData = [newObject];
+
+    //    self.setUpTreeview(updatedData);
+    //}
+
+    return treeNode;
+}
+
     setUpTreeview(treeData: any) {
+
+        $("svg").html("");
+        $("#modal-windows").html("");
         // ************** Generate the tree diagram	 *****************
         var margin = { top: 20, right: 120, bottom: 20, left: 120 },
             width = 960 - margin.right - margin.left,

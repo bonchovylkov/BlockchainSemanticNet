@@ -46,7 +46,8 @@ export class HomeComponent {
             "searchName": "",
             "resources": [],
             "parent": "null",
-            "children": []
+            "children": [],
+            "votes":0
         };
 
         //web3
@@ -78,6 +79,12 @@ export class HomeComponent {
                 treeNode.name = index + "->" + result[0];
                 treeNode.searchName = result[0] + "+Blockchain";
                 treeNode.number = index;
+                treeNode.votes = result[4];
+                var resources = result[2].split(',').filter((s) => s != "");
+                if (resources.length) {
+                    treeNode.resources =  treeNode.resources.concat(resources);
+                }
+               
 
                 var children = result[3].split(",");
                 children = children.filter((s) => s != "");
@@ -239,9 +246,52 @@ export class HomeComponent {
                 .attr("x", -20)
                 .attr("y", 42)
                 .style("fill", "black")
-                //.on("click", openLink)
-                .html(function (d: any) {
-                    return "<div class='resource-holder'>IPFS Resources <div style='display:none'>" + d.resources.join() + "</div></div>";
+                .on('click', function (d,i) {
+                    $("#resources-" + i).modal('show');
+                    event.stopPropagation();
+                })
+                //.on('mouseout', function (d, i) {
+                //    $("#resources-" + i).hide();
+                //})
+                .html("IPFS Resources");
+
+            node.append("foreignObject")
+                .attr("x", -20)
+                .attr("y", 42)
+                //.attr("width", 480)
+                //.attr("height", 500)
+                .append("xhtml:body")
+                .style("font", "14px 'Helvetica Neue'")
+                //.html(function (d: any,i:any) {
+                //    return " <div id='resources-" + i + "' style='display:none'>IPFS Resources "+ d.resources.join() + "</div>";
+                //});
+                .html(function (d: any, i: any) {
+                    var body = d.resources.map((s) => s.split('-')).map(function (r,index) {
+                        return `<li class="list-group-item d-flex justify-content-between align-items-center" >
+                            <a href='https://ipfs.io/ipfs/${r[0]}' target='_blank'>Open resource ${index+1}</a>
+                                <span class="badge badge-primary badge-pill" >${r[1]}</span>
+                                    </li>`
+                    }).join("");
+
+                    var result = `<div id="resources-${i}" class="modal "  role="dialog" >
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resourcesTitle-${i}">Resources for ${d.name}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group">
+                    ${body}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>`;
+                    $("#modal-windows").append(result);
+                    return "";
                 });
 
 

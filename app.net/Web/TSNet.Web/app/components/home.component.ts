@@ -52,6 +52,7 @@ export class HomeComponent {
     d3Index = null;
     duration = null;
     diagonal = null;
+    treeMaxDepth = 0;
 
 
     constructor(private ref: ChangeDetectorRef) {
@@ -174,12 +175,14 @@ export class HomeComponent {
         $("svg").html("");
         $("#modal-windows").html("");
         // ************** Generate the tree diagram	 *****************
+        var goodLen = treeData[0].children.length * 25;
+
         var margin = { top: 20, right: 120, bottom: 20, left: 120 },
             width = 960 - margin.right - margin.left,
-            height = 500 - margin.top - margin.bottom;
-        //var margin = { top: 100, right: 50, bottom: 100, left: 50 },
-        //    width = 900 - margin.left - margin.right,
-        //    height = 500 - margin.top - margin.bottom;
+            //height = 650 - margin.top - margin.bottom;
+            height = goodLen < 650 ? 650 : goodLen;
+       
+        //$("#treeTerms").height(goodLen < 650 ? 650 : goodLen);
 
         self.d3Index = 0;
         self.duration = 750;
@@ -292,12 +295,19 @@ export class HomeComponent {
 
     update(source) {
 
+        var lastDepth = self.treeMaxDepth;
+
         // Compute the new tree layout.
         var nodes = self.tree.nodes(self.root).reverse(),
             links = self.tree.links(nodes);
 
         // Normalize for fixed-depth.
-        nodes.forEach(function (d: any) { d.y = d.depth * 180; });
+        nodes.forEach(function (d: any) {
+            if (d.depth > self.treeMaxDepth) {
+                self.treeMaxDepth = d.depth;
+            }
+            d.y = d.depth * 180;
+        });
 
         // Update the nodes…
         var node = self.svg.selectAll("g.node")
@@ -389,6 +399,16 @@ export class HomeComponent {
             d.x0 = d.x;
             d.y0 = d.y;
         });
+
+        //var goodLen = self.data.children.length*100;
+        //$("#treeTerms").height(goodLen < 650 ? 650 : goodLen);
+
+
+        if (lastDepth < self.treeMaxDepth) {
+           // $("#treeTerms").width($("#treeTerms").width() + ($("#treeTerms").width()/lastDepth));
+            $("#treeTerms").width((self.treeMaxDepth + 1) * 250);
+            $("#treeTerms").height($("#treeTerms").height()*1.1);
+        }
     }
 
     deleteNode() {

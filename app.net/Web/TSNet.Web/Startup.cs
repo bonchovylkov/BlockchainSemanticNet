@@ -34,6 +34,7 @@
 
     using Newtonsoft.Json;
     using TSNet.Services;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
 
     public class Startup
     {
@@ -62,6 +63,13 @@
             services.AddTransient<ISmsSender, NullMessageSender>();
             services.AddTransient<IIpfsService, IpfsService>();
 
+            services.Configure<IISOptions>(options =>
+            {
+                options.ForwardClientCertificate = false;
+            });
+
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -69,21 +77,10 @@
         {
             AutoMapperConfig.RegisterMappings(typeof(TodoItemViewModel).GetTypeInfo().Assembly);
 
-            //// Seed data on application startup
-            //using (var serviceScope = app.ApplicationServices.CreateScope())
+
+
+            //if (env.IsDevelopment())
             //{
-            //    var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            //    if (env.IsDevelopment())
-            //    {
-            //        dbContext.Database.Migrate();
-            //    }
-
-            //    ApplicationDbContextSeeder.Seed(dbContext, serviceScope.ServiceProvider);
-            //}
-
-            if (env.IsDevelopment())
-            {
                 app.UseExceptionHandler(application =>
                 {
                     application.Run(async context =>
@@ -100,7 +97,7 @@
                         }
                     });
                 });
-            }
+           // }
 
             app.UseFileServer();
 
@@ -109,31 +106,6 @@
             app.UseMvc(routes => routes.MapRoute("default", "api/{controller}/{action}/{id?}"));
         }
 
-        private static async Task<GenericPrincipal> PrincipalResolver(HttpContext context)
-        {
-            var email = context.Request.Form["email"];
-
-            var userManager = context.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
-            var user = await userManager.FindByEmailAsync(email);
-            if (user == null || user.IsDeleted)
-            {
-                return null;
-            }
-
-            var password = context.Request.Form["password"];
-
-            var isValidPassword = await userManager.CheckPasswordAsync(user, password);
-            if (!isValidPassword)
-            {
-                return null;
-            }
-
-            var roles = await userManager.GetRolesAsync(user);
-
-            var identity = new GenericIdentity(email, "Token");
-            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
-
-            return new GenericPrincipal(identity, roles.ToArray());
-        }
+      
     }
 }

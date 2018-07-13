@@ -1,112 +1,113 @@
-﻿
-<div class="row">
-    {{nodeNumber}}
-</div>
-<svg>
-</svg>
-<button (click)="test()">
-    click
-</button>
-<!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">{{modalTitle}}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
+﻿<div class="right">
+    <div class="row">
+        {{nodeNumber}}
+    </div>
+    <svg id="treeTerms">
+    </svg>
+    <!--<button (click)="test()">
+        click
+    </button>-->
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">{{modalTitle}}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
 
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <h3>Node votes</h3>
-                        <div class="row">
-                            <div class="col-sm-12 col-md-12 col-lg-12">
-                                <div class="input-group">
-                                    <span class="input-group-btn" (click)="vote(true)">
-                                        <button type="button" id="increaseButton" class="btn btn-success">+</button>
-                                    </span>
-                                    <span class="form-control" style="text-align: center;" id="vote">{{nodeVotes}}</span>
-                                    <span class="input-group-btn" (click)="vote(false)">
-                                        <button type="button" id="decreaseButton" class="btn btn-danger">-</button>
-                                    </span>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <h3>Node votes</h3>
+                            <div class="row">
+                                <div class="col-sm-12 col-md-12 col-lg-12">
+                                    <div class="input-group">
+                                        <span class="input-group-btn" (click)="vote(true)">
+                                            <button type="button" id="increaseButton" class="btn btn-success">+</button>
+                                        </span>
+                                        <span class="form-control" style="text-align: center;" id="vote">{{nodeVotes}}</span>
+                                        <span class="input-group-btn" (click)="vote(false)">
+                                            <button type="button" id="decreaseButton" class="btn btn-danger">-</button>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="panel panel-default">
-                    <div class="panel-body">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
 
 
-                        <div class="form-group">
-                            <label for="newTermName">New term name</label>
-                            <input type="email" class="form-control" id="newTermName" aria-describedby="emailHelp" [(ngModel)]="newNodeName" placeholder="New term name">
-                            <small id="emailHelp" class="form-text text-muted">This new node will attach to currently selected one.</small>
+                            <div class="form-group">
+                                <label for="newTermName">New term name</label>
+                                <input type="email" class="form-control" id="newTermName" aria-describedby="emailHelp" [(ngModel)]="newNodeName" placeholder="New term name">
+                                <small id="emailHelp" class="form-text text-muted">This new node will attach to currently selected one.</small>
 
-                            <span class="pull-right">
-                                <button type="button" class="btn btn-primary" (click)="addNode()">Add child node</button>
-                            </span>
+                                <span class="pull-right">
+                                    <button type="button" class="btn btn-primary" (click)="addNode()">Add child node</button>
+                                </span>
 
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <h3>
-                            IPFS Resources
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <h3>
+                                IPFS Resources
 
-                        </h3>
+                            </h3>
 
-                        <div [innerHTML]="resources"></div>
-                        <br />
-                        <a href="#" class="btn btn-primary" (click)="addResource()">
-                            <span class="glyphicon glyphicon-plus"></span> Add new resource
-                        </a>
-                    </div>
-                </div>
-
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <div [innerHTML]="googleSearch"></div>
-                    </div>
-                </div>
-
-                <div class="panel panel-default" *ngIf="deleteAvailable">
-                    <div class="panel-body">
-
-                        <div class="form-group">
-                            <label for="newTermName" aria-describedby="deleteInfo">Delete node</label>
-                            <small id="deleteInfo" class="form-text text-muted"> *You can delete only your nodes, that doesn't have child nodes</small>
-                            <input type="email" class="form-control" id="deleteNodeName" aria-describedby="deleteHelp" [(ngModel)]="deleteNodeName" placeholder="Node name">
-                            <small id="deleteHelp" class="form-text text-muted">To be sure that you delete the rigth one.</small>
-
-                            <span class="pull-right">
-                                <button type="button" class="btn btn-danger" (click)="deleteNode()">Delete node</button>
-                            </span>
-
+                            <div [innerHTML]="resources"></div>
+                            <br />
+                            <a href="#" class="btn btn-primary" (click)="addResource()">
+                                <span class="glyphicon glyphicon-plus"></span> Add new resource
+                            </a>
                         </div>
                     </div>
+
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div [innerHTML]="googleSearch"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel panel-default" *ngIf="deleteAvailable">
+                        <div class="panel-body">
+
+                            <div class="form-group">
+                                <label for="newTermName" aria-describedby="deleteInfo">Delete node</label>
+                                <small id="deleteInfo" class="form-text text-muted"> *You can delete only your nodes, that doesn't have child nodes</small>
+                                <input type="email" class="form-control" id="deleteNodeName" aria-describedby="deleteHelp" [(ngModel)]="deleteNodeName" placeholder="Node name">
+                                <small id="deleteHelp" class="form-text text-muted">To be sure that you delete the rigth one.</small>
+
+                                <span class="pull-right">
+                                    <button type="button" class="btn btn-danger" (click)="deleteNode()">Delete node</button>
+                                </span>
+
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
-            </div>
 
 
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-
+                </div>
             </div>
         </div>
     </div>
+
+    <div id="modal-windows"></div>
+
+    <p id="input-trigger" (click)="file.click()"></p>
+    <input #file type="file" name="file" multiple (change)="change($event)" id="uploder" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg" class="hidden">
+
 </div>
-
-<div id="modal-windows"></div>
-
-<p id="input-trigger" (click)="file.click()"></p>
-<input #file type="file" name="file" multiple (change)="change($event)" id="uploder" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg" class="hidden">
-

@@ -75,7 +75,7 @@ export class HomeComponent {
         window.setTimeout(() => {
             this.setUpTreeview(this.treeData);
             $("#loading").hide();
-        }, 3000);
+        }, 5000);
 
         //window.setTimeout(() => {
         //    this.setUpTreeview(this.treeData);

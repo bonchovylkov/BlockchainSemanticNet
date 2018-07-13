@@ -28,7 +28,7 @@
                                     <span class="input-group-btn" (click)="vote(true)">
                                         <button type="button" id="increaseButton" class="btn btn-success">+</button>
                                     </span>
-                                    <span  class="form-control" style="text-align: center;" id="vote">{{nodeVotes}}</span>
+                                    <span class="form-control" style="text-align: center;" id="vote">{{nodeVotes}}</span>
                                     <span class="input-group-btn" (click)="vote(false)">
                                         <button type="button" id="decreaseButton" class="btn btn-danger">-</button>
                                     </span>
@@ -44,7 +44,7 @@
 
                         <div class="form-group">
                             <label for="newTermName">New term name</label>
-                            <input type="email" class="form-control" id="newTermName" aria-describedby="emailHelp" [(ngModel)]="newNodeName" placeholder="newTermName">
+                            <input type="email" class="form-control" id="newTermName" aria-describedby="emailHelp" [(ngModel)]="newNodeName" placeholder="New term name">
                             <small id="emailHelp" class="form-text text-muted">This new node will attach to currently selected one.</small>
 
                             <span class="pull-right">
@@ -73,6 +73,23 @@
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div [innerHTML]="googleSearch"></div>
+                    </div>
+                </div>
+
+                <div class="panel panel-default" *ngIf="deleteAvailable">
+                    <div class="panel-body">
+
+                        <div class="form-group">
+                            <label for="newTermName" aria-describedby="deleteInfo">Delete node</label>
+                            <small id="deleteInfo" class="form-text text-muted"> *You can delete only your nodes, that doesn't have child nodes</small>
+                            <input type="email" class="form-control" id="deleteNodeName" aria-describedby="deleteHelp" [(ngModel)]="deleteNodeName" placeholder="Node name">
+                            <small id="deleteHelp" class="form-text text-muted">To be sure that you delete the rigth one.</small>
+
+                            <span class="pull-right">
+                                <button type="button" class="btn btn-danger" (click)="deleteNode()">Delete node</button>
+                            </span>
+
+                        </div>
                     </div>
                 </div>
 

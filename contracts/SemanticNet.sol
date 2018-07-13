@@ -1,7 +1,7 @@
 
 pragma solidity ^0.4.24;
-import "github.com/Arachnid/solidity-stringutils/strings.sol";
-//import "./strings.sol";
+//import "github.com/Arachnid/solidity-stringutils/strings.sol";
+import "./strings.sol";
 //import "./ConcatUtils.sol";
 
 
@@ -36,9 +36,8 @@ contract SemanticNet {
         
          addNode(0,"Block"); //1
          addNode(1,"Transaction"); //2
-        // addNode(0,"Node"); //3
-         
-        //  addNode(3,"Peer",owner);//4
+         addNode(0,"Node"); //3
+         addNode(3,"Peer");//4
         //  addNode(0,"Miner",owner);//5
         //  addNode(0,"Wallet",owner);//6
     }
@@ -179,10 +178,20 @@ contract SemanticNet {
         
         delete parentNode.children[nodeIndex];
         
-        delete parentNode.childrenKeys[parentNode.childrenKeys.length - 1];
-        parentNode.childrenKeys.length--;
+         uint deleteIndex = parentNode.childrenKeys.length - 1;
+            for (uint j=0; j<parentNode.childrenKeys.length; j++) {
+           
+            if(parentNode.childrenKeys[j]==nodeIndex){
+                deleteIndex = j;
+                break;
+            }
+        }
         
-        nodeNumber--;
+        //leaving gaps but..
+        delete parentNode.childrenKeys[deleteIndex];
+        //parentNode.childrenKeys.length--;
+        
+        //nodeNumber--;
      }
 
     

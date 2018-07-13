@@ -1,7 +1,8 @@
-﻿import { Component } from '@angular/core';
+﻿import { Component, ChangeDetectorRef } from '@angular/core';
 import { NvD3Component } from "ng2-nvd3";
 import { Constants } from '../app.constants';
 import { setTimeout, log } from 'core-js';
+
 
 
 var self;
@@ -19,6 +20,7 @@ export class HomeComponent {
     treeData = [];
     data = null;
     dfsNode = null;
+
     modalTitle = "modal";
     resources = "";
     googleSearch = "";
@@ -27,16 +29,22 @@ export class HomeComponent {
     lastlySelectedNode = null;
     sn = null;
     newNodeName = null;
+    deleteNodeName = null;
+    deleteAvailable = null;
     //nodesCount = 0;
     nodeJs = {
+        "creator":"",
         "number": 0,
         "name": "",
         "searchName": "",
         "resources": [],
         "parent": "null",
+        "parentNumber": null,
         "children": [],
         "votes": 0
     };
+
+    web3DefaultAccount = null;
 
     tree = null;
     root = null;
@@ -45,8 +53,10 @@ export class HomeComponent {
     duration = null;
     diagonal = null;
 
-    constructor() {
 
+    constructor(private ref: ChangeDetectorRef) {
+
+       
     }
 
     test() {
@@ -64,7 +74,7 @@ export class HomeComponent {
         window.setTimeout(() => {
             this.setUpTreeview(this.treeData);
             $("#loading").hide();
-        }, 2000);
+        }, 3000);
 
         //window.setTimeout(() => {
         //    this.setUpTreeview(this.treeData);
@@ -73,10 +83,19 @@ export class HomeComponent {
     }
 
     ngOnInit() {
+        if (typeof web3 === 'undefined') {
+            window.alert('No web3? Please use google chrome and metamask plugin to enter this Dapp!');
+            return;
+        }
+
         $("#loading").show();
         self = this;
+
+      
         //web3
         this.sn = web3.eth.contract(Constants.semanticNetABI).at(Constants.semantiNetContractAddress);
+
+        this.web3DefaultAccount = web3.eth.defaultAccount;
 
         this.data = this.setupTreeFromBlockchain(this.nodeJs, 0);
         this.treeData.push(self.data);
@@ -84,11 +103,12 @@ export class HomeComponent {
     }
 
     dfs(node, index) {
-        if (node.number == index) {
+        if (node.number == index.toString()) {
             this.dfsNode = node;
         } else {
             if (node.children) {
                 for (var i = 0; i < node.children.length; i++) {
+                    
                     this.dfs(node.children[i], index);
                 }
             }
@@ -98,7 +118,9 @@ export class HomeComponent {
 
     fillNodeData(treeNode, result, index) {
 
-        treeNode.name =  result[0];
+        treeNode.creator = result[1].toLowerCase();
+        treeNode.name = result[0];
+        //treeNode.graphName = index + result[0];
         treeNode.searchName = result[0] + "+Blockchain";
         treeNode.number = index;
         treeNode.votes = result[4];
@@ -113,16 +135,17 @@ export class HomeComponent {
         self.sn.getNodeJson(index, function (err, result) {
             if (err) {
                 console.log(err);
+                return;
             }
             console.log(JSON.stringify(result));
             //self.nodesCount++;
-
+           
 
             self.fillNodeData(treeNode, result, index);
 
 
             var children = result[3].split(",");
-            children = children.filter((s) => s != "");
+            children = children.filter((s) => s != "" && s != undefined && s != null);
 
             for (var child in children) {
 
@@ -130,6 +153,7 @@ export class HomeComponent {
                     "name": "",
                     "resources": [],
                     "parent": treeNode.name,
+                    "parentNumber": treeNode.number,
                     "children": []
                 }, children[child]);
 
@@ -223,12 +247,13 @@ export class HomeComponent {
         console.log(node);
         self.modalTitle = "Actions related to node: " + node.name;
         self.lastlySelectedNode = node;
-
+        self.deleteAvailable = node.creator == self.web3DefaultAccount && (!node.children || node.children.length === 0);
         self.setupNodeResources(node);
         self.googleSearch
             = `<a href='https://www.google.bg/search?q=${node.searchName}' target='_blank'>Fast google search for the term</a>`;
         self.nodeVotes = node.votes;
 
+        self.ref.detectChanges();
         $('#exampleModal').modal();
         //if (d.children) {
         //    d._children = d.children;
@@ -285,87 +310,6 @@ export class HomeComponent {
             .on("click", self.click);
 
 
-        //node.append("text")
-        //    .attr("x", -20)
-        //    .attr("y", 10)
-        //    .style("fill", "black")
-        //    .style("font-size", "21")
-        //    .style("font-weight", "bold")
-        //    .on("click", self.openLink)
-        //    .html("&#9432;");
-
-        //    node.append("text")
-        //        .attr("x", 0)
-        //        .attr("y", 10)
-        //        .style("fill", "black")
-        //        .style("font-size", "21")
-        //        .style("font-weight", "bold")
-        //        .on('click', function (d, i) {
-        //            $("#resources-" + i).modal('show');
-        //            event.stopPropagation();
-        //        })
-        //        //.on('mouseout', function (d, i) {
-        //        //    $("#resources-" + i).hide();
-        //        //})
-        //        .html("&#x26C3;");
-
-        //    node.append("foreignObject")
-        //        // .attr("x", 0)
-        //        //.attr("y", 42)
-        //        //.attr("width", 480)
-        //        //.attr("height", 500)
-        //        .append("xhtml:body")
-        //        //.style("font", "14px 'Helvetica Neue'")
-        //        //.html(function (d: any,i:any) {
-        //        //    return " <div id='resources-" + i + "' style='display:none'>IPFS Resources "+ d.resources.join() + "</div>";
-        //        //});
-        //        .html(function (d: any, i: any) {
-        //            var body = d.resources.map((s) => s.split('-')).map(function (r, index) {
-        //                return `<li class="list-group-item d-flex justify-content-between align-items-center" >
-        //                            <a href='https://ipfs.io/ipfs/${r[0]}' target='_blank'>Open resource ${index + 1}</a>
-        //                                <span class="badge badge-primary badge-pill" >${r[1]}</span>
-        //                                    </li>`
-        //            }).join("");
-
-        //            var result = `<div id="resources-${i}" class="modal "  role="dialog" >
-        //    <div class="modal-dialog">
-        //        <div class="modal-content">
-        //            <div class="modal-header">
-        //                <h5 class="modal-title" id="resourcesTitle-${i}">Resources for ${d.name}</h5>
-        //                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        //                    <span aria-hidden="true">&times;</span>
-        //                </button>
-        //            </div>
-        //            <div class="modal-body">
-        //                <ul class="list-group">
-        //                    ${body}
-        //                </ul>
-        //            </div>
-        //        </div>
-        //    </div>
-        //</div>`;
-        //            $("#modal-windows").append(result);
-        //            return "";
-        //        });
-
-
-
-        //    //
-
-        //    node.append("text")
-        //        .attr("x", -0)
-        //        .attr("y", 54)
-        //        .style("fill", "black")
-        //        .style("font-weight", "bold")
-        //        .on("click", self.addResource)
-        //        .html("&#x2b; Add resource ");
-
-        //node.append("text")
-        //    .attr("x", 0)
-        //    .attr("y", -20)
-        //    .style("font-size", "18")
-        //    .on("click", function (d) { return self.vote(true, d.number) })
-        //    .html("&#x25B2;");
 
         node.append("text")
             .attr("x", 0)
@@ -376,16 +320,6 @@ export class HomeComponent {
                 return d.number;
             });
 
-        //node.append("text")
-        //    .attr("x", 40)
-        //    .attr("y", -20)
-        //    .style("font-size", "18")
-        //    .on("click", function (d) { return self.vote(false, d.number) })
-        //    .html("&#x25BD;");
-
-
-
-        // .text();
 
 
 
@@ -396,8 +330,8 @@ export class HomeComponent {
             .style("font-size", "15")
             .attr("text-anchor", function (d: any) { return d.children || d._children ? "end" : "start"; })
             .html(function (d: any) {
-                return `<button class="btn btn-primary btn-xs" type="button">
-          <span class="badge">${d.number}</span> ${d.name}
+                return `<button class="btn btn-primary btn-xs"  type="button">
+          <span class="badge" style="position: inherit;">${d.number}</span> ${d.name}
         </button>`;
             })
             .style("color", "#000");
@@ -457,6 +391,50 @@ export class HomeComponent {
         });
     }
 
+    deleteNode() {
+
+        if (self.deleteNodeName != self.lastlySelectedNode.name) {
+            alert("You are trying to delete wrong node!");
+            return;
+        }
+
+        self.sn.removeNode(self.lastlySelectedNode.parentNumber, self.lastlySelectedNode.number, function (err, trxHash) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            $("#loading").show();
+            
+            console.log(JSON.stringify(trxHash));
+            $('#exampleModal').modal('hide');
+
+            var intervals = 0;
+
+            self.sn.nodeNumber(function (err, result) {
+                var nodesCount = result;
+
+                window.setTimeout(() => {
+                    self.dfs(self.data, self.lastlySelectedNode.parentNumber);
+                    for (var i = 0; i < self.dfsNode.children.length; i++) {
+                        if (self.dfsNode.children[i].number == self.lastlySelectedNode.number) {
+                            self.dfsNode.children.splice(i, 1);
+                            break;
+                        }
+                    }
+
+                    self.update(self.dfsNode);
+                    $("#loading").hide();
+
+                },10000);
+            });
+
+
+
+
+
+        });
+    }
+
     addNode() {
 
         self.sn.addNode(self.lastlySelectedNode.number, self.newNodeName, function (err, trxHash) {
@@ -507,13 +485,20 @@ export class HomeComponent {
                                         "name": "",
                                         "resources": [],
                                         "parent": self.lastlySelectedNode.name,
+                                        "parentNumber": parentNumber,
                                         "children": []
                                     };
-                                    self.fillNodeData(newNode, result, nodesCount);
 
-                                    self.dfs(self.data, parentNumber);
+                                    self.fillNodeData(newNode, result, nodesCount);
+                                    self.dfs(self.data, self.lastlySelectedNode.number);
+                                    if (!self.dfsNode.children) {
+                                        self.dfsNode.children = [];
+                                    }
                                     self.dfsNode.children.push(newNode);
                                     self.update(self.dfsNode);
+                                    //self.lastlySelectedNode.children.push(newNode);
+                                   // self.update(self.lastlySelectedNode);
+                                    self.newNodeName = "";
                                 });
 
                             }

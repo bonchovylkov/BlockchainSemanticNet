@@ -25,7 +25,7 @@ contract('SemanticNet', function ([owner]) {
     });
 
     it('nodes length update', async () => {
-        assert.equal(await semanticWeb.nodeNumber(), 4);
+        assert.equal(await semanticWeb.nodeNumber() >0, true);
     });
 
     it('flatten tree set', async  ()=> {
@@ -66,11 +66,43 @@ contract('SemanticNet', function ([owner]) {
 
     it('remove node by creator works', async  ()=> {
         
-        var currentCount = (await semanticWeb.nodeNumber()).toNumber();
+        var data = await semanticWeb.getNodeJson.call(1);
+        var children =  data[3].split(',');
+        children = children.filter(function(n){ return n != "" }); 
 
-        await semanticWeb.removeNode.call(0,3);
-        var newCount = (await semanticWeb.nodeNumber()).toNumber();
-        assert.equal(currentCount--, newCount);
+        await semanticWeb.removeNode.call(1,2);
+        
+        var dataAfter = await semanticWeb.getNodeJson.call(1);
+        var childrenAfter =  dataAfter[3].split(',');
+        childrenAfter = childrenAfter.filter(function(n){ return n != "" && n != undefined  && n != null}); 
+        //console.log(childrenAfter);
+
+        assert.equal(children.length--, childrenAfter.length);
+
+    });
+
+    it('vote positive', async  ()=> {
+        
+        var data = await semanticWeb.getNodeJson.call(1);
+        (await semanticWeb.vote(true,0));
+
+        var dataAfterVote = await semanticWeb.getNodeJson.call(1);
+        assert.equal(data[4]++, dataAfterVote[4]);
+
+    });
+
+    it('add resource', async  ()=> {
+        
+
+       var result = await semanticWeb.addResources.call(0,1,"QmSQ2xakSEG6KXvRGNp1o1amgd7A69BbeoLP9h4t1P9hYk","image/jpeg");
+       setTimeout(async () => {
+        var data = await semanticWeb.getNodeJson.call(0);
+        console.log(data);
+        
+        assert.equal(data[2], "QmSQ2xakSEG6KXvRGNp1o1amgd7A69BbeoLP9h4t1P9hYk-image/jpeg,");
+      }, 1000);
+       
+        
 
     });
 })

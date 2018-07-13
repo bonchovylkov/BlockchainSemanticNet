@@ -9,8 +9,9 @@
 
 export class Constants {
 
+
     //public static semantiNetContractAddress = "0x124f14c8b1637ce9ad21f1176cda7ea7c09e251b";
-    public static semantiNetContractAddress = "0xc6c822ca1c4a1ec9b391c779b35ee1c1d5d29d8d";// "0x0beab1aea1ac3c06270f6f38e59f19a04b8381a6";// "0x8009810201163a2bed3a4f05ff10110ffb5966cf";
+    public static semantiNetContractAddress = "0xd90e8ab2a7fdae650369bfe0944a0ea4140ef2a3"; // "0xc6c822ca1c4a1ec9b391c779b35ee1c1d5d29d8d";// "0x0beab1aea1ac3c06270f6f38e59f19a04b8381a6";// "0x8009810201163a2bed3a4f05ff10110ffb5966cf";
     
     public static semanticNetABI = [
         {
